@@ -26,9 +26,9 @@ void goHome() {
 }
 
 
-void waveOnce(int speed) {
+void waveOnce(int wait) {
   int startPos = pos;
-  int waitms = 15;
+  int waitms = wait;
  
   /*
   for (pos = startPos; pos<180; pos++) {
@@ -49,12 +49,12 @@ void waveOnce(int speed) {
   for(pos = 0; pos < 180; pos += 1)  // goes from 0 degrees to 180 degrees
   {                                  // in steps of 1 degree
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(10);                       // waits 15ms for the servo to reach the position
+    delay(waitms);                       // waits 15ms for the servo to reach the position
   }
   for(pos = 180; pos>=1; pos-=1)     // goes from 180 degrees to 0 degrees
   {                                
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(10);                       // waits 15ms for the servo to reach the position
+    delay(waitms);                       // waits 15ms for the servo to reach the position
   }
   
 }
@@ -83,13 +83,13 @@ void handleSerial() {
       goHome();
     }
     
-    if (cbuffer.equals("W")) {
-      Serial.println("W");
+    if (cbuffer.equals("WINK")) {
+      Serial.println("WINK");
       waveOnce(10);
     }
     
-    if (cbuffer.equals("W3")) {
-      Serial.println("W3");
+    if (cbuffer.equals("WINK3")) {
+      Serial.println("W3INK");
       waveOnce(10);
       waveOnce(10);
       waveOnce(10);
