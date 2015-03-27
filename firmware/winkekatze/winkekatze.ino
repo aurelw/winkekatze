@@ -1,22 +1,17 @@
-// Sweep
-// by BARRAGAN <http://barraganstudio.com>u
-// This example code is in the public domain.
-
-
 #include <Servo.h>
-#include <SoftwareSerial.h>
-
  
 Servo myservo;  // create servo object to control a servo
                 // a maximum of eight servo objects can be created
  
 const int homePos = 20;
+const int maxPos = 90;
+
 int pos = 0;    // variable to store the servo position
  
 void setup()
 {
   myservo.attach(9);  // attaches the servo on pin 9 to the servo object
-  Serial.begin(14400);
+  Serial.begin(19200);
   goHome();
 }
 
@@ -28,43 +23,25 @@ void goHome() {
 
 void waveOnce(int wait) {
   int startPos = pos;
-  int waitms = wait;
  
-  /*
-  for (pos = startPos; pos<180; pos++) {
-    myservo.write(pos);
-    delay(waitms);
-  }
-  
-  for (pos=180; pos>0; pos--) {
-    myservo.write(pos);
-    delay(waitms);
-  }
-  
-  for (pos=0; pos<startPos; pos++) {
-   myservo.write(pos);
-   delay(waitms);
-  }
-  */
-  for(pos = 0; pos < 180; pos += 1)  // goes from 0 degrees to 180 degrees
+  for(pos = 0; pos < maxPos; pos += 3)  // goes from 0 degrees to 180 degrees
   {                                  // in steps of 1 degree
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(waitms);                       // waits 15ms for the servo to reach the position
+    delay(3*wait);                       // waits 15ms for the servo to reach the position
   }
-  for(pos = 180; pos>=1; pos-=1)     // goes from 180 degrees to 0 degrees
+  for(pos = maxPos; pos>=1; pos-=3)     // goes from 180 degrees to 0 degrees
   {                                
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(waitms);                       // waits 15ms for the servo to reach the position
+    delay(3*wait);                       // waits 15ms for the servo to reach the position
   }
-  
+  delay(wait);
 }
-
 
 
 void handleSerial() {
   if (Serial.available()) {
     String cbuffer;
-    int cbuffer_len = 256;
+    int cbuffer_len = 128;
 
     /* Get the command string */
     char c;
@@ -79,27 +56,27 @@ void handleSerial() {
     
     /* handle special reset command */
     if (cbuffer.equals("RESET")) {
-      Serial.println("R");
+//      Serial.println("R");
       goHome();
     }
     
     if (cbuffer.equals("WINK")) {
-      Serial.println("WINK");
+ //     Serial.println("WINK");
       waveOnce(10);
     }
     
     if (cbuffer.equals("WINK3")) {
-      Serial.println("W3INK");
+ //     Serial.println("WINK3");
       waveOnce(10);
       waveOnce(10);
       waveOnce(10);
     }
-    
+    /*
     char buffer_foo[256];
-    cbuffer.toCharArray(buffer_foo, 256);
+    cbuffer.toCharArray(buffer_foo, 128);
     Serial.println(buffer_foo);
     Serial.println("SERIAL");
-    
+    */
   }
 
 }
@@ -108,5 +85,6 @@ void handleSerial() {
 void loop()
 {
   handleSerial();
+  delay(100);
 }
 
