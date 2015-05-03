@@ -25,6 +25,7 @@ import argparse
 import mosquitto
 
 
+
 class WinkekatzeConnection:
 
     def __init__(self):
@@ -70,9 +71,12 @@ class WinkekatzeConnection:
             self.isConnected = False;
 
 
+
+
 class MQTT_TOPICS:
     winkekatze = "winkekatze"
     hi5 = "craftui/button/buttonHi5"
+
 
 
 def on_message(client, winkekatze, msg):
@@ -87,6 +91,20 @@ def on_message(client, winkekatze, msg):
             winkekatze.reset()
     elif msg.topic == MQTT_TOPICS.hi5:
         winkekatze.wink3()
+
+
+def on_disconnect(client, userdata, foo):
+    connected = False
+    while not connected:
+        try:
+            client.reconnect()
+            connected = True
+            # resubscribe to the topics
+            client.subscribe(MQTT_TOPICS.winkekatze)
+            client.subscribe(MQTT_TOPICS.hi5)
+        except:
+            print("Failed to reconnect...")
+            time.sleep(1)
 
 
 def tryToConnectArduino(winkekatze):
@@ -112,8 +130,14 @@ def main():
     
     ## setup MQTT client
     client = mosquitto.Mosquitto()
-    client.connect(brokerHost)
     client.on_message = on_message
+    client.on_disconnect = on_disconnect
+
+    try:
+        client.connect(brokerHost)
+    except:
+        print("failed to connect")
+        on_disconnect(client, None, None)
 
     ## subscribe to topics
     client.subscribe(MQTT_TOPICS.winkekatze)
@@ -143,6 +167,8 @@ def main():
                 tryToConnectArduino(winkeKatze)
             if winkeKatze.isConnected:
                 print("Reconnected!")
+            else:
+                time.sleep(1)
 
         client.loop()
 
