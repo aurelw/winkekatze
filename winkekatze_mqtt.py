@@ -74,8 +74,8 @@ class WinkekatzeConnection:
 
 
 class MQTT_TOPICS:
-    winkekatze = "winkekatze"
-    hi5 = "craftui/button/buttonHi5"
+    winkekatze = "devlol/winkekatze"
+    hi5 = "devlol/h19/mainroom/craftui/button/buttonHi5"
 
 
 
@@ -90,7 +90,8 @@ def on_message(client, winkekatze, msg):
         elif payload == "RESET":
             winkekatze.reset()
     elif msg.topic == MQTT_TOPICS.hi5:
-        winkekatze.wink3()
+        if payload == "DOWN":
+            winkekatze.wink3()
 
 
 def on_disconnect(client, userdata, foo):
