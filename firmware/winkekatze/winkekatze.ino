@@ -3,46 +3,58 @@
 Servo myservo;  // create servo object to control a servo
                 // a maximum of eight servo objects can be created
  
-const int homePos = 20;
-const int maxPos = 90;
+/* for a simple wave */
+const int homePos = 130;
+const int maxPos = 200;
+const int minPos = 100;
+/*********************/
 
-int pos = 0;    // variable to store the servo position
+const int ledPin = 13;
+const int servoPin = 9;
+
+int pos = homePos;    // variable to store the servo position
  
 void setup()
 {
-  myservo.attach(9);  // attaches the servo on pin 9 to the servo object
-<<<<<<< HEAD
+  pinMode(ledPin, OUTPUT);      
   Serial.begin(9600);
-=======
-  Serial.begin(19200);
->>>>>>> 3e70bb536d119ee8a5a5a5e296e6d53ee2b5ce45
+  //Serial.begin(19200);
   goHome();
 }
 
 
-void goHome() {
+void goToPos(int pos) {
+  if (pos < 0 || pos > 1028) return;
+  
+  myservo.attach(servoPin);
   myservo.write(homePos);
+  myservo.detach();
+}
+
+
+void goHome() {
+  goToPos(homePos);
 }
 
 
 void waveOnce(int wait) {
+  myservo.attach(servoPin);
+  
   int startPos = pos;
  
-<<<<<<< HEAD
-  for(pos = 1; pos < maxPos; pos += 3)  // goes from 0 degrees to 180 degrees
-=======
-  for(pos = 0; pos < maxPos; pos += 3)  // goes from 0 degrees to 180 degrees
->>>>>>> 3e70bb536d119ee8a5a5a5e296e6d53ee2b5ce45
+  for(pos = startPos; pos < maxPos; pos += 3)  // goes from 0 degrees to 180 degrees
   {                                  // in steps of 1 degree
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(3*wait);                       // waits 15ms for the servo to reach the position
   }
-  for(pos = maxPos; pos>=1; pos-=3)     // goes from 180 degrees to 0 degrees
+  for(pos = maxPos; pos >= minPos; pos-=3)     // goes from 180 degrees to 0 degrees
   {                                
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(3*wait);                       // waits 15ms for the servo to reach the position
   }
   delay(wait);
+
+  myservo.detach();
 }
 
 
@@ -78,6 +90,28 @@ void handleSerial() {
       waveOnce(10);
       waveOnce(10);
       waveOnce(10);
+    }
+
+    if (cbuffer.equals("WINKFAST")) {
+      waveOnce(3);
+      waveOnce(3);
+      waveOnce(3);
+    }
+
+    if (cbuffer.equals("LIGHT_ON")) {
+      Serial.println("light on new");
+      digitalWrite(ledPin, HIGH);
+    }
+
+    if (cbuffer.equals("LIGHT_OFF")) {
+      Serial.println("light off 2");
+      digitalWrite(ledPin, LOW);
+    }
+
+    if (cbuffer.startsWith("POS")) {
+      cbuffer.remove(0, 4);
+      int toPos = cbuffer.toInt();
+      goToPos(toPos);
     }
     /*
     char buffer_foo[256];

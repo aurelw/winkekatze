@@ -81,6 +81,7 @@ class MQTT_TOPICS:
 
 def on_message(client, winkekatze, msg):
     payload = msg.payload.decode("utf-8")
+    print(payload)
     """ Callback for mqtt message."""
     if msg.topic == MQTT_TOPICS.winkekatze:
         if payload == "WINK":
@@ -89,6 +90,10 @@ def on_message(client, winkekatze, msg):
             winkekatze.wink3()
         elif payload == "RESET":
             winkekatze.reset()
+        elif "CMD:" in payload: # send a raw command to the cat
+            cmd = payload[4:].strip() + ";"
+            print(cmd)
+            winkekatze._sendCommand(cmd)
     elif msg.topic == MQTT_TOPICS.hi5:
         if payload == "DOWN":
             winkekatze.wink3()
