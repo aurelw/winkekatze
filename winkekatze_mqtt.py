@@ -113,8 +113,8 @@ def on_disconnect(client, userdata, foo):
             time.sleep(1)
 
 
-def tryToConnectArduino(winkekatze):
-    devices =  ["/dev/ttyUSB" + str(x) for x in range(10)]
+def tryToConnectArduino(winkekatze, devname="ttyACM", num=10):
+    devices =  ["/dev/" + devname + str(x) for x in range(num)]
 
     for device in devices:
         winkekatze.connect(device, 9600)
@@ -170,7 +170,7 @@ def main():
             if (gotDevicePath):
                 winkeKatze.connect(devicePath, 9600)
             else:
-                tryToConnectArduino(winkeKatze)
+                tryToConnectArduino(winkeKatze, "ttyACM", 5)
             if winkeKatze.isConnected:
                 print("Reconnected!")
             else:
