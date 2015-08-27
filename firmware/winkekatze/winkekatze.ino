@@ -1,4 +1,6 @@
 #include <Servo.h>
+
+#include <Adafruit_NeoPixel.h>
  
 Servo myservo;  // create servo object to control a servo
                 // a maximum of eight servo objects can be created
@@ -11,12 +13,18 @@ const int minPos = 100;
 
 const int ledPin = 13;
 const int servoPin = 9;
+const int neoPixelPin_body = 16;
+const int neoPixelPin_paw = 17;
+Adafruit_NeoPixel pixels_paw = Adafruit_NeoPixel(1, neoPixelPin_paw, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels_body = Adafruit_NeoPixel(8, neoPixelPin_body, NEO_GRB + NEO_KHZ800);
 
-int pos = homePos;    // variable to store the servo position
+int globPos = homePos;    // variable to store the servo position
  
 void setup()
 {
-  pinMode(ledPin, OUTPUT);      
+  pixels_paw.begin();
+  pixels_body.begin();
+  pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
   //Serial.begin(19200);
   goHome();
@@ -27,8 +35,10 @@ void goToPos(int pos) {
   if (pos < 0 || pos > 1028) return;
   
   myservo.attach(servoPin);
-  myservo.write(homePos);
+  myservo.write(pos);
+  delay(250);
   myservo.detach();
+  globPos = pos;
 }
 
 
@@ -40,7 +50,7 @@ void goHome() {
 void waveOnce(int wait) {
   myservo.attach(servoPin);
   
-  int startPos = pos;
+  int startPos = globPos;
  
   for(pos = startPos; pos < maxPos; pos += 3)  // goes from 0 degrees to 180 degrees
   {                                  // in steps of 1 degree
@@ -58,6 +68,42 @@ void waveOnce(int wait) {
 }
 
 
+void waveFurious(int wait) {
+  setPawColor(255,0,0);
+  setBodyColor(255,255,0);
+  waveOnce(wait);
+  setPawColor(255,255,0);
+  setBodyColor(0,255,255);
+  waveOnce(wait);
+  setPawColor(0,255,255);
+  setBodyColor(255,0,255);
+  waveOnce(wait);
+  setPawColor(0,0,255);
+  waveOnce(wait);
+  setPawColor(255,255,255);
+  setBodyColor(255,255,255);
+  waveOnce(wait);
+}
+
+
+void setPawColor(uint8_t r, uint8_t g, uint8_t b) {
+  pixels_paw.setPixelColor(0, pixels_paw.Color(g,r,b));
+  pixels_paw.show();
+}
+
+
+void setBodyColor(int i, uint8_t r, uint8_t g, uint8_t b) {
+  pixels_body.setPixelColor(i, pixels_body.Color(r,g,b));
+  pixels_body.show();
+}
+
+
+void setBodyColor(uint8_t r, uint8_t g, uint8_t b) {
+  for (int i=0; i<8; i++) {
+    setBodyColor(i,r,g,b);
+  }
+}
+
 void handleSerial() {
   if (Serial.available()) {
     String cbuffer;
@@ -74,19 +120,22 @@ void handleSerial() {
       cbuffer += c;
     }
     
+    if (cbuffer.startsWith("POS")) {
+      cbuffer.remove(0, 4);
+      int toPos = cbuffer.toInt();
+      goToPos(toPos);
+    }
+
     /* handle special reset command */
     if (cbuffer.equals("RESET")) {
-//      Serial.println("R");
       goHome();
     }
     
     if (cbuffer.equals("WINK")) {
- //     Serial.println("WINK");
       waveOnce(10);
     }
     
     if (cbuffer.equals("WINK3")) {
- //     Serial.println("WINK3");
       waveOnce(10);
       waveOnce(10);
       waveOnce(10);
@@ -98,21 +147,60 @@ void handleSerial() {
       waveOnce(3);
     }
 
+    if (cbuffer.equals("WINKFURIOUS")) {
+      waveFurious(3); 
+    }
+
     if (cbuffer.equals("LIGHT_ON")) {
-      Serial.println("light on new");
+      Serial.println("light on 2");
       digitalWrite(ledPin, HIGH);
+      setPawColor(255,255,255);
+      setBodyColor(255,255,255);
     }
 
     if (cbuffer.equals("LIGHT_OFF")) {
       Serial.println("light off 2");
       digitalWrite(ledPin, LOW);
+      setPawColor(0,0,0);
+      setBodyColor(0,0,0);
     }
 
-    if (cbuffer.startsWith("POS")) {
-      cbuffer.remove(0, 4);
-      int toPos = cbuffer.toInt();
-      goToPos(toPos);
+    if (cbuffer.equals("PAW_RED")) {
+      setPawColor(255,0,0);
     }
+
+    if (cbuffer.equals("PAW_GREEN")) {
+      setPawColor(0,255,0);
+    }
+ 
+    if (cbuffer.equals("PAW_BLUE")) {
+      setPawColor(0,0,255);
+    }
+
+    if (cbuffer.equals("PAW_WHITE")) {
+      setPawColor(255,255,255);
+    }
+    
+    if (cbuffer.equals("BODY_RED")) {
+      setBodyColor(255,0,0);
+    }
+
+    if (cbuffer.equals("BODY_GREEN")) {
+      setBodyColor(0,255,0);
+    }
+
+    if (cbuffer.equals("BODY_BLUE")) {
+      setBodyColor(0,0,255);
+    }
+    
+    if (cbuffer.equals("BODY_WHITE")) {
+      setBodyColor(255,255,255);
+    }
+
+    if (cbuffer.equals("BODY_ROSE")) {
+      setBodyColor(255,80,80);
+    }
+
     /*
     char buffer_foo[256];
     cbuffer.toCharArray(buffer_foo, 128);
