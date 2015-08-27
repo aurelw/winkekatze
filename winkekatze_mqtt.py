@@ -23,6 +23,8 @@ import serial
 import argparse
 
 import mosquitto
+import topicconfig
+from topictypes import TopicTypes
 
 
 
@@ -74,6 +76,7 @@ class WinkekatzeConnection:
 
 
 class MQTT_TOPICS:
+    winkekatze = "pusteblume/winkekatze"
     winkekatze = "devlol/winkekatze"
     hi5 = "devlol/h19/mainroom/craftui/button/buttonHi5"
 
@@ -83,20 +86,28 @@ def on_message(client, winkekatze, msg):
     payload = msg.payload.decode("utf-8")
     print(payload)
     """ Callback for mqtt message."""
-    if msg.topic == MQTT_TOPICS.winkekatze:
-        if payload == "WINK":
-            winkekatze.wink()
-        elif payload == "WINK3":
-            winkekatze.wink3()
-        elif payload == "RESET":
-            winkekatze.reset()
-        elif "CMD:" in payload: # send a raw command to the cat
-            cmd = payload[4:].strip() + ";"
-            print(cmd)
-            winkekatze._sendCommand(cmd)
-    elif msg.topic == MQTT_TOPICS.hi5:
-        if payload == "DOWN":
-            winkekatze.wink3()
+    for ctopic in topicconfig.cat_topics:
+        
+        if ctopic['topic'] == msg.topic:
+            
+            if ctopic['type'] == TopicTypes.WINKEKATZE:
+                if payload == "WINK":
+                    winkekatze.wink()
+                elif payload == "WINK3":
+                    winkekatze.wink3()
+                elif payload == "RESET":
+                    winkekatze.reset()
+                elif "CMD:" in payload: # send a raw command to the cat
+                    cmd = payload[4:].strip() + ";"
+                    print(cmd)
+                    winkekatze._sendCommand(cmd)
+            
+            elif ctopic['type'] == TopicTypes.TRIGGER_ON_PAYLOAD:
+                if ctopic['payload'] == payload:
+                    winkekatze._sendCommand(ctopic['command'])
+
+            elif ctopic['type'] == TopicTypes.TRIGGER_ON_POST:
+                winkekatze._sendCommand(ctopic['command'])
 
 
 def on_disconnect(client, userdata, foo):
@@ -106,8 +117,8 @@ def on_disconnect(client, userdata, foo):
             client.reconnect()
             connected = True
             # resubscribe to the topics
-            client.subscribe(MQTT_TOPICS.winkekatze)
-            client.subscribe(MQTT_TOPICS.hi5)
+            for ctopic in topicconfig.cat_topics:
+                client.subscribe(ctopic['topic'])
         except:
             print("Failed to reconnect...")
             time.sleep(1)
@@ -146,8 +157,8 @@ def main():
         on_disconnect(client, None, None)
 
     ## subscribe to topics
-    client.subscribe(MQTT_TOPICS.winkekatze)
-    client.subscribe(MQTT_TOPICS.hi5)
+    for ctopic in topicconfig.cat_topics:
+        client.subscribe(ctopic['topic'])
 
     ## winkekatze
     winkeKatze = WinkekatzeConnection()
