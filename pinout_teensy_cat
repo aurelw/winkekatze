@@ -1,0 +1,8 @@
+PIN 16 -> neo_pixels IN -> orange
+PIN 17 -> neo_pixels OUT -> yellow
+neo_pixels VDD -> gray
+neo_pixels GND -> black 
+
+PIN 9 -> servo pwm -> orange
+servo vcc -> red 
+servo gnd -> purple
