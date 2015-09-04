@@ -1,7 +1,34 @@
 #include <Servo.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WiFiMulti.h>
+#include <PubSubClient.h>
+
+ESP8266WiFiMulti wifiMulti;
+
+IPAddress MQTTserver(158, 255, 212, 248);
+WiFiClient wclient;
+PubSubClient client(wclient, MQTTserver);
 
 Servo myservo;  // create servo object to control a servo
                 // a maximum of eight servo objects can be created
+
+void mqtt_callback(const MQTT::Publish& pub) {
+  String msg = pub.payload_string();
+  if (msg == "WINK") {
+    waveOnce(10);
+  }
+  if (msg == "WINK3") {
+    waveOnce(10);
+    waveOnce(10);
+    waveOnce(10);
+  }
+  if (msg == "WINKFAST") {
+    waveOnce(3);
+    waveOnce(3);
+    waveOnce(3);
+  }
+  
+}
  
 /* for a simple wave */
 const int homePos = 70;
@@ -24,6 +51,14 @@ void setup()
   //pixels_body.begin();
   //pinMode(ledPin, OUTPUT);
   Serial.begin(115200);
+    delay(10);
+  
+    wifiMulti.addAP("/dev/lol", "4dprinter");
+    wifiMulti.addAP("ESP-Spielwiese", "ovomaltine");
+
+    if(wifiMulti.run() == WL_CONNECTED) {
+      Serial.println("Wifi connected");
+    }
   //Serial.begin(19200);
   goHome();
 }
@@ -219,6 +254,24 @@ void handleSerial() {
  
 void loop()
 {
+  // wifi
+  if(WiFi.status() != WL_CONNECTED) {
+    if(wifiMulti.run() == WL_CONNECTED) {
+      Serial.println("Wifi connected");
+    }
+  }
+
+    // mqtt
+    if (client.connected()) {
+      client.loop();
+    } else {
+      if (client.connect("postkatze", "devlol/winkekatze/postkatze/online", 0, true, "false")) {
+        client.publish("devlol/winkekatze/postkatze/online", "true", true);
+        Serial.println("MQTT connected");
+        client.set_callback(mqtt_callback);
+        client.subscribe("devlol/winkekatze");
+      }
+    }
   handleSerial();
   delay(100);
 }
