@@ -1,31 +1,29 @@
 #include <Servo.h>
 
-#include <Adafruit_NeoPixel.h>
-
 Servo myservo;  // create servo object to control a servo
                 // a maximum of eight servo objects can be created
  
 /* for a simple wave */
-const int homePos = 130;
-const int maxPos = 200;
-const int minPos = 100;
+const int homePos = 70;
+const int maxPos = 110;
+const int minPos = 30;
 /*********************/
 
 const int ledPin = 13;
-const int servoPin = 9;
+const int servoPin = 16;
 const int neoPixelPin_body = 16;
 const int neoPixelPin_paw = 17;
-Adafruit_NeoPixel pixels_paw = Adafruit_NeoPixel(1, neoPixelPin_paw, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixels_body = Adafruit_NeoPixel(8, neoPixelPin_body, NEO_GRB + NEO_KHZ800);
+//Adafruit_NeoPixel pixels_paw = Adafruit_NeoPixel(1, neoPixelPin_paw, NEO_GRB + NEO_KHZ800);
+//Adafruit_NeoPixel pixels_body = Adafruit_NeoPixel(8, neoPixelPin_body, NEO_GRB + NEO_KHZ800);
 
 int globPos = homePos;    // variable to store the servo position
  
 void setup()
 {
-  pixels_paw.begin();
-  pixels_body.begin();
-  pinMode(ledPin, OUTPUT);
-  Serial.begin(9600);
+  //pixels_paw.begin();
+  //pixels_body.begin();
+  //pinMode(ledPin, OUTPUT);
+  Serial.begin(115200);
   //Serial.begin(19200);
   goHome();
 }
@@ -53,17 +51,23 @@ void waveOnce(int wait) {
   int startPos = globPos;
   int pos;
   
-  for(pos = startPos; pos < maxPos; pos += 3)  // goes from 0 degrees to 180 degrees
-  {                                  // in steps of 1 degree
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(3*wait);                       // waits 15ms for the servo to reach the position
+  for (pos = startPos; pos > minPos; pos -= 1)
+  {                                 
+    myservo.write(pos);             
+    delay(wait);                      
   }
-  for(pos = maxPos; pos >= minPos; pos-=3)     // goes from 180 degrees to 0 degrees
+  for (pos = minPos; pos <= maxPos; pos += 1)     
   {                                
-    myservo.write(pos);              // tell servo to go to position in variable 'pos'
-    delay(3*wait);                       // waits 15ms for the servo to reach the position
+    myservo.write(pos);             
+    delay(wait);                       
+  }
+  for (pos = maxPos; pos >= homePos; pos -= 1) {
+    myservo.write(pos);             
+    delay(wait);   
   }
   delay(wait);
+
+  globPos = pos;
 
   myservo.detach();
 }
@@ -88,14 +92,14 @@ void waveFurious(int wait) {
 
 
 void setPawColor(uint8_t r, uint8_t g, uint8_t b) {
-  pixels_paw.setPixelColor(0, pixels_paw.Color(g,r,b));
-  pixels_paw.show();
+  //pixels_paw.setPixelColor(0, pixels_paw.Color(g,r,b));
+  //pixels_paw.show();
 }
 
 
 void setBodyColor(int i, uint8_t r, uint8_t g, uint8_t b) {
-  pixels_body.setPixelColor(i, pixels_body.Color(r,g,b));
-  pixels_body.show();
+  //pixels_body.setPixelColor(i, pixels_body.Color(r,g,b));
+  //pixels_body.show();
 }
 
 
