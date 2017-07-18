@@ -7,6 +7,8 @@
 
 #include "Arduino.h"
 
+//#define FASTLED_ESP8266_NODEMCU_PIN_ORDER
+#define FASTLED_ESP8266_RAW_PIN_ORDER
 #include "FastLED.h"
 #include "Servo.h"
 
@@ -21,7 +23,7 @@ extern "C" {
 #include "wifi_credentials.h"
 
 /* pin out */
-#define LED_DATA_PIN 5
+#define LED_DATA_PIN 3
 #define SERVO_DATA_PIN 13 
 
 /* led animation timer */
@@ -195,12 +197,12 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
   
   String msg = byteArrayToString(payload, length);
   Serial.print("msg length: ");
-  Serial.println(length);
+  //Serial.println(length);
   Serial.print("string length: ");
-  Serial.println(msg.length());
+  //Serial.println(msg.length());
   Serial.print("msg received: ");
-  Serial.println("_" + msg + "_");
-  Serial.println(msg.substring(0, 10));
+  //Serial.println("_" + msg + "_");
+  //Serial.println(msg.substring(0, 10));
   
   if (msg == "WINK") {
     waveOnce(15);
@@ -281,25 +283,28 @@ void mqtt_callback(char* topic, byte* payload, unsigned int length) {
 
 void setup()
 {
+    //Serial.println("setup");
     // initialize LED digital pin as an output.
     FastLED.addLeds<NEOPIXEL, LED_DATA_PIN>(leds, NUM_LEDS);
 
-    Serial.begin(115200);
+    //Serial.begin(115200);
     delay(1000);
-  
+
     for (int i=0; i<NUM_WIFI_CREDENTIALS; i++) {
         wifiMulti.addAP(WIFI_CREDENTIALS[i][0], WIFI_CREDENTIALS[i][1]);
     }
 
     if(wifiMulti.run() == WL_CONNECTED) {
-        Serial.println("Wifi connected.");
+        //Serial.println("Wifi connected.");
     } else {
-        Serial.println("Wifi not connected!");
+        //Serial.println("Wifi not connected!");
     }
 
     /* set up LED animation timer */
     os_timer_setfn(&timer0, timerCallback, &timerCounter);
     os_timer_arm(&timer0, timerInterval, true);
+    
+    setBodyColor(CRGB::Red);
 }
     
 
@@ -308,15 +313,19 @@ void loop()
     static unsigned int counter = 0;
     static bool wifiConnected = false;
 
+    //Serial.println("loop");
+    //Serial.println(counter);
+    delay(100);
+#if 1
     /* reconnect wifi */
     if(wifiMulti.run() == WL_CONNECTED) {
         if (!wifiConnected) {
-            Serial.println("Wifi connected.");
+            //Serial.println("Wifi connected.");
             wifiConnected = true;
         }
     } else {
         if (wifiConnected) {
-            Serial.println("Wifi not connected!");
+            //Serial.println("Wifi not connected!");
             wifiConnected = false;
         }
     }
@@ -328,13 +337,15 @@ void loop()
     } else {
         if (client.connect("cadskatze", "devlol/winkekatze/cadskatze/online", 0, true, "false")) {
             client.publish("devlol/winkekatze/cadskatze/online", "true", true);
-            Serial.println("MQTT connected");
+            //Serial.println("MQTT connected");
             client.setCallback(mqtt_callback);
             client.subscribe("devlol/winkekatze/cadskatze/cmd");
         }
     }
-
+#endif
     yield();
+
+    //Serial.println("endloop");
 
 }
 
