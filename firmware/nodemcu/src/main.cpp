@@ -310,11 +310,9 @@ void setup()
 
 void loop()
 {
-    static unsigned int counter = 0;
     static bool wifiConnected = false;
 
     //Serial.println("loop");
-    //Serial.println(counter);
     delay(100);
 #if 1
     /* reconnect wifi */
